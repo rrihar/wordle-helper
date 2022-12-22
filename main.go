@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	// "strings"
-	// 	"log"
+	//  "log"
 	"bufio"
 	"os"
 )
@@ -17,27 +17,54 @@ func check_error(e error) {
 type char struct {
 	data byte
 	next []char
+	end  bool
 }
 
-func find(data []char, word string) bool {
-	i := 0
+func find(data []char, word string, i int) []string {
+
+	end := false
 	for i < len(word) {
 
 		if data == nil {
-			return false
+			return []string{}
 		}
-
 		index := word[i] - 97
-		fmt.Println(i, data[index].data, word[i])
-
-		if data[index].data == word[i] {
-			i++
-			data = data[index].next
+		if index == 29 {
+			ans := []string{}
+			id := 0
+			for id < 26 {
+				if i == len(word)-1 {
+					tmp := find(data, word[:i]+string(id+97), i)
+					if len(tmp) != 0 {
+						ans = append(ans, tmp...)
+					}
+				} else {
+					tmp := find(data, word[:i]+string(id+97)+word[i+1:], i)
+					if len(tmp) != 0 {
+						ans = append(ans, tmp...)
+					}
+				}
+				id++
+			}
+			return ans
 		} else {
-			return false
+			// fmt.Println(i, word[i], data[index].data)
+			if data[index].data == word[i] {
+				i++
+				end = data[index].end
+				data = data[index].next
+			} else {
+				return []string{}
+			}
 		}
+
 	}
-	return true
+	if end {
+		return []string{word}
+	} else {
+		return []string{}
+	}
+
 }
 
 func main() {
@@ -74,13 +101,20 @@ func main() {
 			prev_char = &((*prev_char).next[index])
 			i++
 		}
+		(*prev_char).end = true
 	}
 
 	// r = bufio.NewScanner(os.Stdin)
 
-	// fmt.Println(head)
-	toFind := "educative"
+	// fmt.Println(head[0])
+	toFind := "r~l~y"
 
-	fmt.Printf("%s found: %t", toFind, find(head[:], toFind))
+	ans := find(head[:], toFind, 0)
+
+	if len(ans) == 0 {
+		fmt.Println(toFind, ": Did not find the word in the dictionary")
+	} else {
+		fmt.Println(toFind, "Found these words in the dictionary", ans)
+	}
 
 }
