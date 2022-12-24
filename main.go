@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
-	// "strings"
-	//  "log"
 	"bufio"
+	"fmt"
 	"os"
+	"strings"
 )
 
 func check_error(e error) {
@@ -67,10 +66,29 @@ func find(data []char, word string, i int) []string {
 
 }
 
-func main() {
+func getInput() (string, string) {
+
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	check_error(err)
+
+	input = strings.TrimSuffix(input, "\n")
+	options := strings.Split(input, " ")
+
+	var orange, green string
+
+	green = options[0]
+
+	if len(options) == 2 {
+		orange = options[1]
+	}
+
+	return green, orange
+}
+
+func buildDictionary() []char {
 	var head [26]char
 
-	// fmt.Println(head)
 	f, err := os.Open("words_alpha.txt")
 
 	check_error(err)
@@ -103,18 +121,56 @@ func main() {
 		}
 		(*prev_char).end = true
 	}
+	return head[:]
 
-	// r = bufio.NewScanner(os.Stdin)
+}
 
-	// fmt.Println(head[0])
-	toFind := "r~l~y"
+func filterWords(prospects []string, orange string) []string {
 
-	ans := find(head[:], toFind, 0)
+	if len(orange) == 0 {
+		return prospects
+	}
 
-	if len(ans) == 0 {
-		fmt.Println(toFind, ": Did not find the word in the dictionary")
-	} else {
-		fmt.Println(toFind, "Found these words in the dictionary", ans)
+	var ans []string
+	for i := 0; i < len(prospects); i++ {
+		contain_flag := true
+		for _, char := range orange {
+			if !strings.Contains(prospects[i], string(char)) {
+				contain_flag = false
+				break
+			}
+		}
+		if contain_flag == true {
+			ans = append(ans, prospects[i])
+		}
+	}
+	return ans
+}
+
+func main() {
+
+	fmt.Println("Please wait while the dictionary is being loaded...")
+	dictionary := buildDictionary()
+	fmt.Println("Finished loading dictionary.")
+
+	// fmt.Println("Press ctrl+c")
+
+	for true {
+		fmt.Println("\n******************")
+		fmt.Printf("Enter green, orange(optional): ")
+
+		green, orange := getInput()
+
+		prospects := find(dictionary, green, 0)
+
+		ans := filterWords(prospects, orange)
+
+		if len(ans) > 0 {
+			fmt.Println("Found these words: ", ans)
+		} else {
+			fmt.Println("Did not find any word that match your criteria")
+		}
+		fmt.Println("******************")
 	}
 
 }
